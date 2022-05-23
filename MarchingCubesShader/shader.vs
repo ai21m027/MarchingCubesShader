@@ -6,6 +6,8 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
+uniform float dlimit;
+
 uniform sampler3D noise3D;
 
 out VS_OUT {
@@ -46,14 +48,40 @@ void main()
 
     vs_out.aNormal = normalize(normal);
 
-    float f0 = round(vs_out.f0123.x);
-    float f1 = round(vs_out.f0123.y);
-    float f2 = round(vs_out.f0123.z);
-    float f3 = round(vs_out.f0123.w);
-    float f4 = round(vs_out.f4567.x);
-    float f5 = round(vs_out.f4567.y);
-    float f6 = round(vs_out.f4567.z);
-    float f7 = round(vs_out.f4567.w);
+    //float f0 = round(vs_out.f0123.x);
+    //float f1 = round(vs_out.f0123.y);
+    //float f2 = round(vs_out.f0123.z);
+    //float f3 = round(vs_out.f0123.w);
+    //float f4 = round(vs_out.f4567.x);
+    //float f5 = round(vs_out.f4567.y);
+    //float f6 = round(vs_out.f4567.z);
+    //float f7 = round(vs_out.f4567.w);
+
+    float f0 = 0;
+    float f1 = 0;
+    float f2 = 0;
+    float f3 = 0;
+    float f4 = 0;
+    float f5 = 0;
+    float f6 = 0;
+    float f7 = 0;
+
+    if (vs_out.f0123.x > dlimit)  f0 = 1;
+    else  f0 = 0;
+    if (vs_out.f0123.y > dlimit)  f1 = 1;
+    else  f1 = 0;
+    if (vs_out.f0123.z > dlimit)  f2 = 1;
+    else  f2 = 0;
+    if (vs_out.f0123.w > dlimit)  f3 = 1;
+    else  f3 = 0;
+    if (vs_out.f4567.x > dlimit)  f4 = 1;
+    else  f4 = 0;
+    if (vs_out.f4567.y > dlimit)  f5 = 1;
+    else  f5 = 0;
+    if (vs_out.f4567.z > dlimit)  f6 = 1;
+    else  f6 = 0;
+    if (vs_out.f4567.w > dlimit)  f7 = 1;
+    else  f7 = 0;
 
     uint n0 = uint(f0);
     uint n1 = uint(f1);

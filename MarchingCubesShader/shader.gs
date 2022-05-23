@@ -86,7 +86,7 @@ void main()
 	int e[16];
 
 	for (int i = 0; i < 16; i++) {
-		e[i] = int(texelFetch(triTable, 16 * config + i).r);
+		e[i] = int(texelFetch(triTable, 16 * config + i).x);
 	}
 
 	for (int i = 0; i < 16; i += 3) {

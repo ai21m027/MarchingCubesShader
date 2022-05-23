@@ -32,12 +32,14 @@ float pitch = 0.0f;
 float lastX = 800.0f / 2.0;
 float lastY = 600.0 / 2.0;
 float fov = 45.0f;
+bool PAUSE = false;
+float DENSITY_LIMIT = 0.5;
 
 const siv::PerlinNoise::seed_type seed = 12345u;
 const siv::PerlinNoise perlin{ seed };
 
 unsigned int noise3D;
-const int size = 20;
+const int size = 30;
 float scroll = 0.f;
 
 // timing
@@ -68,6 +70,14 @@ void processInput(GLFWwindow* window)
 		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+		cameraPos += cameraSpeed * cameraUp;
+	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+		cameraPos -= cameraSpeed * cameraUp;
+	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+		PAUSE = false;
+	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+		PAUSE = true;
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -122,13 +132,21 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 // ----------------------------------------------------------------------
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
+	scroll = ((float)yoffset)/50.f;
+	DENSITY_LIMIT += scroll;
+	if (DENSITY_LIMIT < 0.1) DENSITY_LIMIT = 0.1;
+	if (DENSITY_LIMIT > 0.9) DENSITY_LIMIT = 0.9;
+}
+
+void noise_update(double time)
+{
 	/*fov -= (float)yoffset;
 	if (fov < 1.0f)
 		fov = 1.0f;
 	if (fov > 45.0f)
 		fov = 45.0f;*/
 
-	scroll -= ((float)yoffset)/50.f;
+	
 
 	const int width = size;
 	const int height = size;
@@ -139,7 +157,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	for (int z = 0; z < depth; ++z) {
 		for (int y = 0; y < height; ++y) {
 			for (int x = 0; x < width; ++x) {
-				const float noise = perlin.normalizedOctave3D_01((x * 0.05), (y * 0.05 + scroll), (z * 0.05), 8);
+				const float noise = perlin.normalizedOctave3D_01((x * 0.05), (y * 0.05 - time), (z * 0.05), 8);
 				noiseCube[z][y][x] = noise;
 			}
 		}
@@ -157,7 +175,8 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, width, height, depth, 0, GL_RED, GL_FLOAT, noiseCube);
 }
 
-int main()
+
+int main() 
 {
 	std::cout << "Starting..." << std::endl;
 
@@ -264,14 +283,22 @@ int main()
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+	float noise_timer = 0;
 
 	while (!glfwWindowShouldClose(window))
 	{
+		ourShader.setFloat("dlimit", DENSITY_LIMIT);
 		// per-frame time logic
 		// --------------------
 		float currentFrame = static_cast<float>(glfwGetTime());
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
+		
+		if (!PAUSE)
+		{
+			noise_update(noise_timer);
+			noise_timer += 0.1 * deltaTime;
+		}
 
 		// input
 		// -----
@@ -279,7 +306,7 @@ int main()
 
 		// render
 		// ------
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClearColor(0.8f, 0.8f, 0.8f, 1.0f);
 		//glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
