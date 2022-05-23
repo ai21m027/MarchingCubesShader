@@ -469,4 +469,6 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
+!vendor/bin/premake/*
+
 
